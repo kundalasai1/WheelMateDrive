@@ -1,0 +1,3 @@
+export const dictionaries={en:{home:"Home",book:"Book a driver",notifications:"Notifications",earnings:"Earnings",language:"Language"},te:{home:"హోమ్",book:"డ్రైవర్‌ను బుక్ చేయండి",notifications:"నోటిఫికేషన్లు",earnings:"ఆదాయం",language:"భాష"},hi:{home:"होम",book:"ड्राइवर बुक करें",notifications:"सूचनाएँ",earnings:"कमाई",language:"भाषा"}} as const;
+export type Locale=keyof typeof dictionaries;export const locales:Locale[]=["en","te","hi"];
+export function formatCurrency(value:number,locale:Locale="en"){return new Intl.NumberFormat(locale==="te"?"te-IN":locale==="hi"?"hi-IN":"en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(value)}

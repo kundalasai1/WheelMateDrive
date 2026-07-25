@@ -1,0 +1,29 @@
+"use client";
+import { useMemo, useState } from "react";
+
+type Fare = { baseFare:number; distanceFare:number; durationFare:number; surcharges:number; platformFee:number; tax:number; total:number; currency:string };
+type InitialData = { pickupAddress?:string; destinationAddress?:string; tripType?:string; scheduledAt?:string; fareMin?:string; fareMax?:string };
+const tripMap: Record<string,string> = { Local:"local", Scheduled:"scheduled", "Full Day":"full_day", Outstation:"outstation", "Airport Transfer":"airport_transfer" };
+const baseInitial = { pickupAddress:"",pickupLat:"14.6819",pickupLng:"77.6006",destinationAddress:"",destinationLat:"14.7000",destinationLng:"77.6200",city:"Anantapur",tripType:"local",scheduledAt:"",estimatedDistanceKm:"10",expectedDurationHours:"2",vehicleType:"sedan",transmissionType:"manual",passengerCount:"1",preferredLanguage:"Telugu",specialAssistance:"",emergencyContact:"",notes:"",paymentMethod:"cash" };
+
+export function BookingForm({ initialData = {} }: { initialData?: InitialData }) {
+  const hydrated = useMemo(() => ({ ...baseInitial, pickupAddress:initialData.pickupAddress||"", destinationAddress:initialData.destinationAddress||"", tripType:tripMap[initialData.tripType||""]||initialData.tripType||"local", scheduledAt:initialData.scheduledAt||"" }), [initialData]);
+  const [form,setForm]=useState(hydrated);
+  const [fare,setFare]=useState<Fare|null>(null);
+  const [message,setMessage]=useState("");
+  const [busy,setBusy]=useState(false);
+  const preview = initialData.fareMin && initialData.fareMax ? `₹${initialData.fareMin}–₹${initialData.fareMax}` : "";
+  const payload=()=>({...form,pickupLat:Number(form.pickupLat),pickupLng:Number(form.pickupLng),destinationLat:Number(form.destinationLat),destinationLng:Number(form.destinationLng),estimatedDistanceKm:Number(form.estimatedDistanceKm),expectedDurationHours:Number(form.expectedDurationHours),passengerCount:Number(form.passengerCount),scheduledAt:new Date(form.scheduledAt).toISOString()});
+  async function estimate(){try{setBusy(true);setMessage("");const r=await fetch("/api/pricing/estimate",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload())});const d=await r.json();if(!r.ok)throw new Error(d.error||"Fare estimate failed");setFare(d.fare);}catch(e){setMessage(e instanceof Error?e.message:"Fare estimate failed");}finally{setBusy(false);}}
+  async function submit(e:React.FormEvent){e.preventDefault();if(!fare){await estimate();return;}try{setBusy(true);const r=await fetch("/api/bookings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload())});const d=await r.json();setMessage(r.ok?`Booking ${d.booking.bookingNumber} created successfully.`:d.error||"Booking failed");}catch{setMessage("Booking failed. Please try again.");}finally{setBusy(false);}}
+  return <form className="card mt-8 grid gap-5 p-6 md:p-8" onSubmit={submit}>
+    {preview && <div className="route-summary"><div><span>Route carried from homepage</span><strong>{form.pickupAddress} → {form.destinationAddress}</strong></div><div><span>Indicative fare</span><strong>{preview}</strong></div></div>}
+    <div className="grid gap-5 md:grid-cols-2"><Field label="Pickup address" value={form.pickupAddress} set={v=>setForm({...form,pickupAddress:v})}/><Field label="Destination" value={form.destinationAddress} set={v=>setForm({...form,destinationAddress:v})}/><Field label="City" value={form.city} set={v=>setForm({...form,city:v})}/><Field label="Schedule" type="datetime-local" value={form.scheduledAt} set={v=>setForm({...form,scheduledAt:v})}/><Field label="Estimated distance (km)" type="number" value={form.estimatedDistanceKm} set={v=>setForm({...form,estimatedDistanceKm:v})}/><Field label="Expected duration (hours)" type="number" value={form.expectedDurationHours} set={v=>setForm({...form,expectedDurationHours:v})}/><Field label="Emergency contact" value={form.emergencyContact} set={v=>setForm({...form,emergencyContact:v})}/><label className="font-bold">Trip type<select className="mt-2 w-full rounded-xl border border-slate-200 p-3 font-normal" value={form.tripType} onChange={e=>setForm({...form,tripType:e.target.value})}>{["local","hourly","full_day","scheduled","outstation","airport_transfer","one_way","round_trip"].map(x=><option key={x} value={x}>{x.replaceAll("_"," ")}</option>)}</select></label></div>
+    <p className="text-sm text-slate-500">Coordinates currently use editable map-ready defaults. Google Maps autocomplete can replace them after the API key is configured.</p>
+    {fare&&<div className="rounded-2xl bg-slate-50 p-5"><h3 className="font-black">Fare review</h3><div className="mt-3 grid gap-2 text-sm"><Line k="Base fare" v={fare.baseFare}/><Line k="Distance" v={fare.distanceFare}/><Line k="Duration" v={fare.durationFare}/><Line k="Surcharges" v={fare.surcharges}/><Line k="Platform fee" v={fare.platformFee}/><Line k="Tax" v={fare.tax}/><div className="mt-2 flex justify-between border-t pt-3 text-lg font-black"><span>Total</span><span>₹{fare.total.toFixed(2)}</span></div></div></div>}
+    {message&&<p className="rounded-xl bg-blue-50 p-3 text-blue-900">{message}</p>}
+    <div className="flex flex-wrap gap-3"><button type="button" onClick={estimate} disabled={busy} className="btn">{busy?"Calculating...":"Estimate fare"}</button><button className="btn btn-primary" disabled={busy||!fare}>{busy?"Processing...":"Confirm booking"}</button></div>
+  </form>
+}
+function Field({label,value,set,type="text"}:{label:string;value:string;set:(v:string)=>void;type?:string}){return <label className="font-bold">{label}<input required type={type} value={value} onChange={e=>set(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 p-3 font-normal"/></label>}
+function Line({k,v}:{k:string;v:number}){return <div className="flex justify-between"><span>{k}</span><span>₹{v.toFixed(2)}</span></div>}

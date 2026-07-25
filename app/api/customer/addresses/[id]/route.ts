@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {getCurrentUser} from "@/lib/auth/session";import {connectDB} from "@/lib/db/mongoose";import {CustomerAddressModel} from "@/models/CustomerAddress";
+export async function DELETE(_:Request,{params}:{params:Promise<{id:string}>}){const u=await getCurrentUser();if(!u||u.role!=="customer")return NextResponse.json({error:"Forbidden"},{status:403});await connectDB();const {id}=await params;await CustomerAddressModel.deleteOne({_id:id,customerId:u.id});return NextResponse.json({ok:true})}

@@ -1,0 +1,2 @@
+import {Schema,model,models} from "mongoose";
+const schema=new Schema({driverId:{type:Schema.Types.ObjectId,ref:"User",required:true,index:true},amount:{type:Number,required:true,min:1},status:{type:String,enum:["pending","approved","paid","rejected"],default:"pending",index:true},payoutMethod:{type:String,default:"bank"},note:String,processedBy:{type:Schema.Types.ObjectId,ref:"User"},processedAt:Date},{timestamps:true});export const WithdrawalRequestModel=models.WithdrawalRequest??model("WithdrawalRequest",schema);

@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "WheelMateDrive",
+  "short_name": "WheelMate",
+  "description": "Book a verified professional driver for your own car.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f8fd",
+  "theme_color": "#071e3d",
+  "categories": ["travel", "navigation", "business"],
+  "icons": [
+    {"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"/icons/icon-192-maskable.png","sizes":"192x192","type":"image/png","purpose":"maskable"},
+    {"src":"/icons/icon-512-maskable.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Book a driver","short_name":"Book","url":"/book","icons":[{"src":"/icons/icon-192.png","sizes":"192x192"}]},
+    {"name":"My bookings","short_name":"Bookings","url":"/customer/bookings","icons":[{"src":"/icons/icon-192.png","sizes":"192x192"}]},
+    {"name":"Notifications","short_name":"Alerts","url":"/customer/notifications","icons":[{"src":"/icons/icon-192.png","sizes":"192x192"}]}
+  ]
+}

@@ -1,0 +1,13 @@
+import {NextRequest,NextResponse} from "next/server";
+import mongoose from "mongoose";
+import {connectDB} from "@/lib/db/mongoose";
+import {hashPassword} from "@/lib/security/password";
+import {customerRegistrationSchema,driverRegistrationSchema} from "@/lib/validation/auth";
+import {assertSameOrigin,getClientIp} from "@/lib/http/request";
+import {UserModel} from "@/models/User";
+import {CustomerProfileModel} from "@/models/CustomerProfile";
+import {DriverProfileModel} from "@/models/DriverProfile";
+import {createSession} from "@/lib/auth/session";
+import {issueAuthToken} from "@/services/auth-tokens";
+import {audit} from "@/services/audit";
+export async function POST(req:NextRequest){try{assertSameOrigin(req);const body=await req.json();const role=body.role==="driver"?"driver":"customer";const parsed=(role==="driver"?driverRegistrationSchema:customerRegistrationSchema).safeParse(body);if(!parsed.success)return NextResponse.json({error:"Validation failed",issues:parsed.error.flatten().fieldErrors},{status:400});await connectDB();const exists=await UserModel.exists({$or:[{email:parsed.data.email},{phone:parsed.data.phone}]});if(exists)return NextResponse.json({error:"Email or phone already registered"},{status:409});const session=await mongoose.startSession();let userId="";try{await session.withTransaction(async()=>{const [user]=await UserModel.create([{email:parsed.data.email,phone:parsed.data.phone,passwordHash:await hashPassword(parsed.data.password),role,status:"active"}],{session});userId=String(user._id);if(role==="customer"){const d=customerRegistrationSchema.parse(parsed.data);await CustomerProfileModel.create([{userId:user._id,fullName:d.fullName,address:d.address,emergencyContact:d.emergencyContact}],{session})}else{const d=driverRegistrationSchema.parse(parsed.data);await DriverProfileModel.create([{userId:user._id,fullName:d.fullName,city:d.city,address:d.address,drivingLicenceNumber:d.drivingLicenceNumber,drivingExperienceYears:d.drivingExperienceYears,languages:d.languages,emergencyContact:d.emergencyContact}],{session})}})}finally{await session.endSession()}const verificationToken=await issueAuthToken(userId,"verify_email",1440);await createSession(userId,{ip:getClientIp(req),userAgent:req.headers.get("user-agent")??undefined});await audit({actorId:userId,role,action:"auth.register",resource:"user",resourceId:userId,ip:getClientIp(req),userAgent:req.headers.get("user-agent")??undefined});return NextResponse.json({ok:true,role,verificationToken:process.env.NODE_ENV==="development"?verificationToken:undefined},{status:201})}catch(error){console.error("register",error);return NextResponse.json({error:"Unable to create account"},{status:500})}}

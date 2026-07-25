@@ -1,0 +1,1 @@
+import {requireUser} from "@/lib/auth/session";import {NotificationCentre} from "@/components/notifications/notification-centre";export default async function Page(){await requireUser(["customer"]);return <main className="container section"><p className="eyebrow">UNIFIED INBOX</p><h1>Notifications</h1><NotificationCentre/></main>}

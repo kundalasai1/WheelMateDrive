@@ -1,0 +1,15 @@
+import "dotenv/config";
+import {connectDB} from "../lib/db/mongoose";
+import {UserModel} from "../models/User";
+import {hashPassword} from "../lib/security/password";
+import {RoleModel} from "../models/Role";
+import {AuditLogModel} from "../models/AuditLog";
+const email=process.env.ADMIN_EMAIL?.toLowerCase();const password=process.env.ADMIN_PASSWORD;const phone=process.env.ADMIN_PHONE;
+if(!email||!password)throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD before running create-admin");
+if(password.length<12)throw new Error("Admin password must be at least 12 characters");
+await connectDB();
+await RoleModel.updateOne({name:"admin"},{$setOnInsert:{description:"Platform administrator"},$set:{permissions:["bookings.read","bookings.write","bookings.assign","customers.read","drivers.read","drivers.approve","pricing.manage","payments.read","cms.manage","reports.export","security.read","users.manage"]}},{upsert:true});
+const existing=await UserModel.findOne({email});if(existing)throw new Error("Admin account already exists");
+const user=await UserModel.create({email,phone,passwordHash:await hashPassword(password),role:"admin",status:"active",emailVerifiedAt:new Date()});
+await AuditLogModel.create({actorId:user._id,role:"admin",action:"admin.created",resource:"user",resourceId:String(user._id),metadata:{source:"create-admin script"}});
+console.log(`Admin created: ${email}`);process.exit(0);

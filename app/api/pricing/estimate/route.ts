@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {fareEstimateSchema} from "@/lib/validation/booking";import {estimateFare} from "@/services/booking/core";
+export async function POST(req:Request){try{const input=fareEstimateSchema.parse(await req.json());return NextResponse.json({fare:await estimateFare(input)});}catch(e){const message=e instanceof Error?e.message:"Unable to estimate fare";return NextResponse.json({error:message},{status:message==="PRICING_NOT_CONFIGURED"?404:400});}}

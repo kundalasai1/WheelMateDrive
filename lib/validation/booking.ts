@@ -1,0 +1,8 @@
+import {z} from "zod";
+const coordinate=z.number().finite();
+export const fareEstimateSchema=z.object({city:z.string().trim().min(2).max(80),tripType:z.enum(["local","hourly","full_day","scheduled","outstation","airport_transfer","one_way","round_trip"]),scheduledAt:z.coerce.date().refine(v=>v.getTime()>Date.now(),"Booking time must be in the future"),estimatedDistanceKm:z.coerce.number().min(0).max(5000),expectedDurationHours:z.coerce.number().min(.5).max(240)});
+export const bookingInputSchema=fareEstimateSchema.extend({pickupAddress:z.string().trim().min(5).max(300),pickupLat:coordinate,pickupLng:coordinate,destinationAddress:z.string().trim().min(5).max(300),destinationLat:coordinate,destinationLng:coordinate,vehicleType:z.enum(["hatchback","sedan","suv","luxury","other"]),transmissionType:z.enum(["manual","automatic"]),passengerCount:z.coerce.number().int().min(1).max(12),preferredLanguage:z.string().trim().max(50).optional(),specialAssistance:z.string().trim().max(300).optional(),emergencyContact:z.string().trim().min(8).max(20),notes:z.string().trim().max(1000).optional(),paymentMethod:z.enum(["cash","upi","card"])});
+export const assignmentSchema=z.object({driverId:z.string().regex(/^[a-f\d]{24}$/i)});
+export const driverStatusSchema=z.object({action:z.enum(["accept","reject","en_route","arrived","start","pause","resume","complete"]),reason:z.string().trim().max(300).optional(),actualDistanceKm:z.number().min(0).max(5000).optional(),actualDurationHours:z.number().min(0).max(240).optional()});
+export const otpSchema=z.object({otp:z.string().regex(/^\d{6}$/)});
+export type BookingInput=z.infer<typeof bookingInputSchema>;

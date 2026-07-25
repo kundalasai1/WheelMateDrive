@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {getCurrentUser} from "@/lib/auth/session";import {connectDB} from "@/lib/db/mongoose";import {NotificationModel} from "@/models/Notification";
+export async function PUT(_:Request,{params}:{params:Promise<{id:string}>}){const u=await getCurrentUser();if(!u||u.role!=="customer")return NextResponse.json({error:"Forbidden"},{status:403});const {id}=await params;await connectDB();await NotificationModel.updateOne({_id:id,userId:u.id},{$set:{readAt:new Date()}});return NextResponse.json({ok:true})}

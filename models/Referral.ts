@@ -1,0 +1,2 @@
+import {Schema,model,models} from "mongoose";
+const schema=new Schema({customerId:{type:Schema.Types.ObjectId,ref:"User",required:true,index:true},code:{type:String,required:true,unique:true,index:true},successfulReferrals:{type:Number,default:0},rewardBalance:{type:Number,default:0},currency:{type:String,default:"INR"}},{timestamps:true});export const ReferralModel=models.Referral??model("Referral",schema);

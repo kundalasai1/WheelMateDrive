@@ -1,0 +1,9 @@
+import {NextResponse} from "next/server";
+import {requireUser} from "@/lib/auth/session";
+import {connectDB} from "@/lib/db/mongoose";
+import {PricingRuleModel} from "@/models/PricingRule";
+import {z} from "zod";
+const schema=z.object({city:z.string().trim().min(2),tripType:z.string().trim().min(2),baseFare:z.coerce.number().min(0),baseKilometres:z.coerce.number().min(0),perKilometreFare:z.coerce.number().min(0),perHourFare:z.coerce.number().min(0),minimumFare:z.coerce.number().min(0),nightSurcharge:z.coerce.number().min(0),weekendSurcharge:z.coerce.number().min(0),waitingChargePerHour:z.coerce.number().min(0),outstationAllowance:z.coerce.number().min(0),driverFoodAllowance:z.coerce.number().min(0),overnightAllowance:z.coerce.number().min(0),platformFee:z.coerce.number().min(0),taxPercent:z.coerce.number().min(0).max(100),surgeMultiplier:z.coerce.number().min(1).max(10),active:z.boolean().default(true)});
+export async function GET(){await requireUser(["admin"]);await connectDB();const rules=await PricingRuleModel.find().sort({city:1,tripType:1,createdAt:-1}).lean();return NextResponse.json({rules:rules.map(r=>({...r,_id:String(r._id)}))})}
+export async function POST(req:Request){await requireUser(["admin"]);try{const input=schema.parse(await req.json());await connectDB();const rule=await PricingRuleModel.create(input);return NextResponse.json({rule},{status:201})}catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Unable to save pricing"},{status:400})}}
+export async function PATCH(req:Request){await requireUser(["admin"]);const id=new URL(req.url).searchParams.get('id');if(!id)return NextResponse.json({error:'Pricing id required'},{status:400});const input=z.object({active:z.boolean()}).parse(await req.json());await connectDB();await PricingRuleModel.findByIdAndUpdate(id,input);return NextResponse.json({ok:true})}
