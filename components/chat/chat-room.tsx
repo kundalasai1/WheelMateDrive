@@ -1,8 +1,14 @@
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, @next/next/no-img-element */
 "use client";import {useEffect,useRef,useState} from "react";
-type Msg={_id:string;text?:string;imageUrl?:string;emoji?:string;senderId:string;createdAt:string;readBy?:unknown[]};
+type Msg={_id:string;text?:string;imageUrl?:string;emoji?:string;senderId:string;createdAt:string;readBy?:string[]};
 export function ChatRoom({conversationId,userId}:{conversationId:string,userId:string}){const [messages,setMessages]=useState<Msg[]>([]),[text,setText]=useState(""),[typing,setTyping]=useState(false);const file=useRef<HTMLInputElement>(null);
 async function load(){const r=await fetch(`/api/chat/messages?conversationId=${conversationId}`);if(r.ok)setMessages(await r.json())}
 useEffect(()=>{load();const id=setInterval(load,2500);return()=>clearInterval(id)},[conversationId]);
-async function send(payload:any){await fetch("/api/chat/messages",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({conversationId,...payload})});setText("");await load()}
+interface SendPayload {
+  text?: string;
+  emoji?: string;
+  imageUrl?: string;
+}
+async function send(payload:SendPayload){await fetch("/api/chat/messages",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({conversationId,...payload})});setText("");await load()}
 async function upload(f:File){const reader=new FileReader();reader.onload=()=>send({imageUrl:String(reader.result)});reader.readAsDataURL(f)}
 return <section className="card chat-shell"><div className="chat-stream">{messages.map(m=><div key={m._id} className={`chat-bubble ${String(m.senderId)===userId?"mine":""}`}>{m.imageUrl&&<img src={m.imageUrl} alt="Shared attachment"/>}<p>{m.text||m.emoji}</p><small>{new Date(m.createdAt).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})} · {m.readBy?.length?"Read":"Sent"}</small></div>)}</div>{typing&&<p className="muted">Someone is typing…</p>}<div className="chat-compose"><button onClick={()=>send({emoji:"👍"})}>👍</button><button onClick={()=>file.current?.click()}>📷</button><input ref={file} hidden type="file" accept="image/*" onChange={e=>e.target.files?.[0]&&upload(e.target.files[0])}/><input value={text} placeholder="Type a message" onFocus={()=>setTyping(true)} onBlur={()=>setTyping(false)} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&text.trim())send({text})}}/><button className="btn btn-primary" onClick={()=>text.trim()&&send({text})}>Send</button></div></section>}

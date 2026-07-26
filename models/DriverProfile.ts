@@ -1,4 +1,5 @@
+import type {Model as MongooseModel, InferSchemaType as MongooseInferSchemaType} from "mongoose";
 import {Schema,model,models,type InferSchemaType} from "mongoose";
 const schema=new Schema({userId:{type:Schema.Types.ObjectId,ref:"User",required:true,unique:true,index:true},fullName:{type:String,required:true,trim:true},dateOfBirth:Date,gender:String,city:{type:String,index:true},address:String,aadhaarLast4:String,drivingLicenceNumber:{type:String,index:true},licenceExpiry:Date,drivingExperienceYears:Number,transmissionExperience:[String],languages:[String],emergencyContact:String,bankAccountLast4:String,upiId:String,isAvailable:{type:Boolean,default:false,index:true},lastAvailabilityAt:Date,averageRating:{type:Number,default:0,min:0,max:5},completedTrips:{type:Number,default:0,min:0},kycStatus:{type:String,enum:["draft","submitted","under_review","more_information_required","approved","rejected","suspended","expired"],default:"draft",index:true}},{timestamps:true});
 export type DriverProfile=InferSchemaType<typeof schema>;
-export const DriverProfileModel=models.DriverProfile??model("DriverProfile",schema);
+export const DriverProfileModel=(models.DriverProfile??model("DriverProfile",schema)) as MongooseModel<MongooseInferSchemaType<typeof schema>>;

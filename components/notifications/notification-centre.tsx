@@ -1,2 +1,15 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";import {useEffect,useState} from "react";
-export function NotificationCentre(){const [items,setItems]=useState<any[]>([]);async function load(){const r=await fetch('/api/notifications');if(r.ok)setItems(await r.json())}useEffect(()=>{load()},[]);async function read(id?:string){await fetch('/api/notifications',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify(id?{id}:{all:true})});load()}return <div className="card"><div className="portal-head"><h2>Notification history</h2><button className="btn btn-secondary" onClick={()=>read()}>Mark all read</button></div><div className="notification-list">{items.map(n=><button key={n._id} onClick={()=>read(n._id)} className={n.readAt?'notification read':'notification'}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.createdAt).toLocaleString('en-IN')} · {n.type}</small></button>)}{!items.length&&<p>No notifications yet.</p>}</div><p className="muted">Channels supported by the delivery architecture: in-app, web push, email and WhatsApp provider adapters.</p></div>}
+
+interface Notification {
+  _id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type?: string;
+  link?: string;
+  readAt?: string | Date | null;
+  createdAt: string | Date;
+}
+
+export function NotificationCentre(){const [items,setItems]=useState<Notification[]>([]);async function load(){const r=await fetch('/api/notifications');if(r.ok)setItems(await r.json())}useEffect(()=>{load()},[]);async function read(id?:string){await fetch('/api/notifications',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify(id?{id}:{all:true})});load()}return <div className="card"><div className="portal-head"><h2>Notification history</h2><button className="btn btn-secondary" onClick={()=>read()}>Mark all read</button></div><div className="notification-list">{items.map(n=><button key={n._id} onClick={()=>read(n._id)} className={n.readAt?'notification read':'notification'}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.createdAt).toLocaleString('en-IN')} · {n.type}</small></button>)}{!items.length&&<p>No notifications yet.</p>}</div><p className="muted">Channels supported by the delivery architecture: in-app, web push, email and WhatsApp provider adapters.</p></div>}

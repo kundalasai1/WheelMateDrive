@@ -4,8 +4,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
 
-  // Move this out of experimental
-  typedRoutes: true,
 
   async headers() {
     return [

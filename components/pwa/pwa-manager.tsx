@@ -27,10 +27,7 @@ export function PwaManager() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
-    let registration: ServiceWorkerRegistration | undefined;
-
     navigator.serviceWorker.register("/sw.js").then((reg) => {
-      registration = reg;
       if (reg.waiting) setUpdateReady(reg);
       reg.addEventListener("updatefound", () => {
         const worker = reg.installing;
@@ -70,7 +67,6 @@ export function PwaManager() {
       window.clearTimeout(timer);
       window.removeEventListener("beforeinstallprompt", beforeInstall);
       window.removeEventListener("appinstalled", installed);
-      registration?.unregister;
     };
   }, [isIos]);
 

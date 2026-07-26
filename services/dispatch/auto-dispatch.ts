@@ -30,7 +30,7 @@ export async function autoDispatchBooking(bookingId: string, actorId: string, ac
       .filter(profile => !excluded.has(String(profile.userId)))
       .map(profile => ({
         id: String(profile.userId),
-        city: profile.city,
+        city: profile.city ?? undefined,
         averageRating: profile.averageRating,
         completedTrips: profile.completedTrips,
         transmissionExperience: profile.transmissionExperience,
@@ -58,7 +58,7 @@ export async function autoDispatchBooking(bookingId: string, actorId: string, ac
   }
 
   const fromStatus = booking.status;
-  booking.driverId = winner.id;
+  booking.set("driverId", winner.id);
   booking.status = "driver_assigned";
   await booking.save();
 

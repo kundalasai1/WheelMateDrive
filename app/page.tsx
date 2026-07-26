@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarClock, Clock3, Headphones, MapPinned, Plane, Route, ShieldCheck, Star, UserCheck } from "lucide-react";
+import { ArrowRight, CalendarClock,  Headphones, MapPinned, Plane, Route, ShieldCheck, Star, UserCheck } from "lucide-react";
 import { Hero } from "@/components/home/hero";
 import { QuickBooking } from "@/components/home/quick-booking";
 

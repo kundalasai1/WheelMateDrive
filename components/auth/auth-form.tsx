@@ -19,7 +19,7 @@ export function AuthForm({mode}:{mode:Mode}){
   async function submit(e:FormEvent<HTMLFormElement>){
     e.preventDefault();setBusy(true);setError("");setMessage("");
     try{
-      const data=Object.fromEntries(new FormData(e.currentTarget));
+      const data:Record<string,unknown>=Object.fromEntries(new FormData(e.currentTarget));
       if(mode==="customer"||mode==="driver"){
         data.role=mode;
         if(mode==="driver")data.languages=String(data.languages||"").split(",").map(x=>x.trim()).filter(Boolean);
@@ -29,7 +29,7 @@ export function AuthForm({mode}:{mode:Mode}){
       const json=await res.json();
       if(!res.ok){setError(json.error??"Request failed");return}
       if(mode==="login"||mode==="customer"||mode==="driver"){
-        router.push(`/${json.role}/dashboard`);router.refresh();return;
+        const destination=json.role==="admin"?"/admin/dashboard":json.role==="driver"?"/driver/dashboard":"/customer/dashboard";router.push(destination);router.refresh();return;
       }
       setMessage(mode==="forgot"?"Password reset instructions created. Check the configured email service.":"Request completed successfully.");
     }catch{

@@ -1,4 +1,5 @@
+import type {Model as MongooseModel, InferSchemaType as MongooseInferSchemaType} from "mongoose";
 import {Schema,model,models} from "mongoose";
 const messageSchema=new Schema({authorId:{type:Schema.Types.ObjectId,ref:"User"},authorRole:String,message:{type:String,required:true,maxlength:2000},createdAt:{type:Date,default:Date.now}},{_id:true});
 const schema=new Schema({ticketNumber:{type:String,required:true,unique:true,index:true},customerId:{type:Schema.Types.ObjectId,ref:"User",required:true,index:true},bookingId:{type:Schema.Types.ObjectId,ref:"Booking"},category:{type:String,required:true},subject:{type:String,required:true,maxlength:160},description:{type:String,required:true,maxlength:3000},priority:{type:String,enum:["low","normal","high","urgent"],default:"normal"},status:{type:String,enum:["open","assigned","in_progress","waiting_for_customer","resolved","closed","escalated"],default:"open",index:true},messages:[messageSchema]},{timestamps:true});
-schema.index({customerId:1,createdAt:-1});export const SupportTicketModel=models.SupportTicket??model("SupportTicket",schema);
+schema.index({customerId:1,createdAt:-1});export const SupportTicketModel=(models.SupportTicket??model("SupportTicket",schema)) as MongooseModel<MongooseInferSchemaType<typeof schema>>;

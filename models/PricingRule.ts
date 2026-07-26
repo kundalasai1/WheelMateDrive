@@ -1,5 +1,6 @@
+import type {Model as MongooseModel, InferSchemaType as MongooseInferSchemaType} from "mongoose";
 import {Schema,model,models,type InferSchemaType} from "mongoose";
 const pricingRuleSchema=new Schema({city:{type:String,required:true,index:true},tripType:{type:String,required:true,index:true},baseFare:{type:Number,required:true,min:0},baseKilometres:{type:Number,default:0,min:0},perKilometreFare:{type:Number,default:0,min:0},perHourFare:{type:Number,default:0,min:0},minimumFare:{type:Number,default:0,min:0},nightSurcharge:{type:Number,default:0,min:0},weekendSurcharge:{type:Number,default:0,min:0},waitingChargePerHour:{type:Number,default:0,min:0},outstationAllowance:{type:Number,default:0,min:0},driverFoodAllowance:{type:Number,default:0,min:0},overnightAllowance:{type:Number,default:0,min:0},platformFee:{type:Number,default:0,min:0},taxPercent:{type:Number,default:0,min:0,max:100},surgeMultiplier:{type:Number,default:1,min:1,max:10},active:{type:Boolean,default:true,index:true},effectiveFrom:{type:Date,default:Date.now},effectiveTo:{type:Date}},{timestamps:true});
 pricingRuleSchema.index({city:1,tripType:1,active:1,effectiveFrom:-1});
 export type PricingRule=InferSchemaType<typeof pricingRuleSchema>;
-export const PricingRuleModel=models.PricingRule??model("PricingRule",pricingRuleSchema);
+export const PricingRuleModel=(models.PricingRule??model("PricingRule",pricingRuleSchema)) as MongooseModel<MongooseInferSchemaType<typeof pricingRuleSchema>>;
